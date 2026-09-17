@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(TS_NODE_PROJECT=/tmp/tsconfig.json npx ts-node *)",
+      "Bash(grep -E \"^\\(class-validator|@nestjs\\)$\")",
+      "Bash(python3 -c ' *)",
+      "Bash(npx tsc *)",
+      "Bash(npx nx *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('targets',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(node -e \"console.log\\(require\\('handlebars/package.json'\\).version\\)\")",
+      "Bash(mkdir -p \"/home/carlos/Documentos/angular-nest-contract-first/angular-nestjs-contract-first/.claude/skills/nestjs-entity-lib-gen/schema\" \\\\ *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"console.log\\(require\\('typeorm/package.json'\\).version\\)\")",
+      "Bash(node -p \"require\\('./node_modules/typeorm/package.json'\\).version\")",
+      "Bash(node -e \"const p=require\\('./node_modules/typeorm/package.json'\\); console.log\\(JSON.stringify\\({scripts:p.scripts, engines:p.engines}, null, 2\\)\\)\")",
+      "Bash(npx ts-node *)",
+      "Bash(rm -rf libs/backend/categories .claude/skills/nestjs-entity-lib-gen/.specs/categories.json)"
+    ],
+    "additionalDirectories": [
+      "/home/carlos/Documentos/angular-nest-contract-first/angular-nestjs-contract-first/.claude/skills/nestjs-entity-lib-gen",
+      "/home/carlos/Documentos/angular-nest-contract-first/angular-nestjs-contract-first/.claude/skills/nestjs-entity-lib-gen/.specs"
+    ]
+  }
+}

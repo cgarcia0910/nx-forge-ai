@@ -1,0 +1,59 @@
+import { Injectable{{#if hasFindOne}}, NotFoundException{{/if}} } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { {{entityName}} } from './{{entityFileBase}}.entity';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto } from './{{entityFileBase}}.dto';
+
+@Injectable()
+export class {{entityName}}Service {
+  constructor(
+    @InjectRepository({{entityName}})
+    private {{camelEntityName}}Repository: Repository<{{entityName}}>,
+  ) {}
+{{#if hasFindAll}}
+
+  async findAll(): Promise<{{entityName}}[]> {
+    return this.{{camelEntityName}}Repository.find();
+  }
+{{/if}}
+{{#if hasFindOne}}
+
+  async findOne(id: string): Promise<{{entityName}}> {
+    const {{camelEntityName}} = await this.{{camelEntityName}}Repository.findOne({ where: { id } });
+    if (!{{camelEntityName}}) throw new NotFoundException(`{{entityName}} ${id} no encontrado`);
+    return {{camelEntityName}};
+  }
+{{/if}}
+{{#if hasCreate}}
+
+  async create(dto: Create{{entityName}}Dto): Promise<{{entityName}}> {
+    const {{camelEntityName}} = this.{{camelEntityName}}Repository.create(dto);
+    return this.{{camelEntityName}}Repository.save({{camelEntityName}});
+  }
+{{/if}}
+{{#if hasUpdate}}
+
+  async update(id: string, dto: Update{{entityName}}Dto): Promise<{{entityName}}> {
+    const {{camelEntityName}} = await this.findOne(id);
+    Object.assign({{camelEntityName}}, dto);
+    return this.{{camelEntityName}}Repository.save({{camelEntityName}});
+  }
+{{/if}}
+{{#if hasRemove}}
+
+  async remove(id: string): Promise<void> {
+    const {{camelEntityName}} = await this.findOne(id);
+    await this.{{camelEntityName}}Repository.remove({{camelEntityName}});
+  }
+{{/if}}
+{{#each customMethods}}
+
+  async {{name}}({{{paramsSignature}}}): Promise<{{{returnType}}}> {
+    // TODO: implementar "{{description}}"
+{{#each paramNames}}
+    void {{this}};
+{{/each}}
+    throw new Error('Not implemented: {{name}}');
+  }
+{{/each}}
+}

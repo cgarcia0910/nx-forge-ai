@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start:backend": "nx serve api"
+    "start:backend": "nx serve api",
+    "scaffold": "ts-node applications/backend/tools/scaffold-entity.ts ./src/entities ./src/modules"
   },
   "private": true,
   "devDependencies": {
@@ -26,30 +27,38 @@
     "@types/node": "^24.0.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
+    "handlebars": "^4.7.9",
     "jest": "~30.3.0",
     "jest-environment-node": "~30.3.0",
     "jest-util": "~30.3.0",
+    "jsonc-eslint-parser": "^2.1.0",
     "nx": "23.2.0",
     "prettier": "^3.8.1",
     "ts-jest": "^29.4.7",
-    "ts-node": "10.9.1",
+    "ts-node": "^10.9.2",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.58.0",
     "webpack": "^5.101.3",
     "webpack-cli": "^7.0.0",
-    "webpack-dev-server": "^5.2.1"
+    "webpack-dev-server": "^5.2.1",
+    "yaml": "^2.9.0"
   },
   "workspaces": [
     "packages/*",
-    "applications/backend/*"
+    "applications/backend/*",
+    "courses",
+    "libs/backend/*"
   ],
   "dependencies": {
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/typeorm": "^12.0.1",
     "axios": "^1.6.0",
+    "pg": "^8.23.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "typeorm": "^1.1.1"
   }
 }

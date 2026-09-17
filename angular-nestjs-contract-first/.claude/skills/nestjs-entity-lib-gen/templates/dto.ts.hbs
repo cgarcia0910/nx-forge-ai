@@ -1,0 +1,17 @@
+export class Create{{entityName}}Dto {
+{{#each createProperties}}
+  {{name}}{{#if optional}}?{{/if}}: {{{tsType}}};
+{{/each}}
+
+  constructor({{{constructorParams}}}) {
+{{#each createProperties}}
+    this.{{name}} = {{name}};
+{{/each}}
+  }
+}
+
+export class Update{{entityName}}Dto {
+{{#each updateProperties}}
+  {{name}}?: {{{tsType}}};
+{{/each}}
+}

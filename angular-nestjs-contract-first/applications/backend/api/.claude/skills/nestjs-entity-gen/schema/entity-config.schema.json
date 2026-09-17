@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EntityConfig",
+  "description": "Contrato único entre la fase de decisión (Claude + usuario) y la fase de generación (scripts deterministas). Todo lo que aparece aquí ya fue decidido; los scripts de generate-*.ts no interpretan, solo traducen esto a código.",
+  "type": "object",
+  "required": ["entityName", "tableName", "fields", "relationships", "endpoints"],
+  "properties": {
+    "entityName": { "type": "string", "description": "PascalCase, ej. 'Order'" },
+    "tableName": { "type": "string", "description": "snake_case plural, ej. 'orders'" },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "tsType", "columnType"],
+        "properties": {
+          "name": { "type": "string" },
+          "tsType": { "enum": ["string", "number", "boolean", "Date", "uuid"] },
+          "columnType": { "type": "string", "description": "tipo de columna de Postgres, ej. 'varchar', 'timestamp', 'numeric'" },
+          "isPrimary": { "type": "boolean", "default": false },
+          "isUnique": { "type": "boolean", "default": false },
+          "isNullable": { "type": "boolean", "default": false },
+          "default": { "description": "valor por defecto, opcional" }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "description": "Solo relaciones YA confirmadas explícitamente por el usuario en la fase 2. Cada una debe traer todas las decisiones de negocio resueltas, sin valores implícitos.",
+      "items": {
+        "type": "object",
+        "required": ["targetEntity", "type", "propertyName", "cascade", "eager", "onDelete", "confirmedBy"],
+        "properties": {
+          "targetEntity": { "type": "string" },
+          "type": { "enum": ["OneToOne", "OneToMany", "ManyToOne", "ManyToMany"] },
+          "propertyName": { "type": "string" },
+          "inverseSidePropertyName": { "type": "string" },
+          "joinColumn": { "type": "string", "description": "solo aplica a OneToOne/ManyToOne dueños de la relación" },
+          "cascade": {
+            "type": "array",
+            "items": { "enum": ["insert", "update", "remove"] },
+            "description": "Explícito. No usar cascade: true genérico."
+          },
+          "eager": { "type": "boolean", "description": "default false salvo decisión explícita" },
+          "onDelete": { "enum": ["CASCADE", "SET NULL", "RESTRICT"], "default": "RESTRICT" },
+          "confirmedBy": { "const": "user", "description": "marca de auditoría: siempre debe ser 'user', nunca inferido" },
+          "sourceSignal": { "type": ["string", "null"], "description": "referencia al signalType del analysis-report que originó la propuesta, si aplica" }
+        }
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "required": ["expose", "pagination", "auth"],
+      "properties": {
+        "expose": {
+          "type": "array",
+          "items": { "enum": ["GET_LIST", "GET_ONE", "POST", "PATCH", "DELETE"] }
+        },
+        "pagination": { "enum": ["none", "offset", "cursor"] },
+        "auth": {
+          "type": "object",
+          "required": ["required"],
+          "properties": {
+            "required": { "type": "boolean" },
+            "guard": { "type": "string", "description": "ej. 'JwtAuthGuard', tomado de la convención detectada o indicado por el usuario" }
+          }
+        },
+        "basePath": { "type": "string", "description": "ej. '/v1/orders'" }
+      }
+    },
+    "customMethods": {
+      "type": "array",
+      "description": "Métodos más allá del CRUD básico, decididos explícitamente con el usuario.",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "params", "returns"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "params": { "type": "array", "items": { "type": "string" } },
+          "returns": { "type": "string" }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "confirmedAt": { "type": "string", "format": "date-time" },
+        "generatorVersion": { "type": "string" }
+      }
+    }
+  }
+}

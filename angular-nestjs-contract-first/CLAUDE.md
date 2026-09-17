@@ -21,3 +21,15 @@
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
 <!-- nx configuration end-->
+
+# Repository Architecture
+
+This repository is an Nx monorepo containing Angular and NestJS applications.
+
+## General rules
+
+- Respect Nx project boundaries.
+- Reuse existing libraries instead of duplicating functionality.
+- Keep changes scoped to the requested project or domain.
+- Do not introduce dependencies between projects without a clear reason.
+
