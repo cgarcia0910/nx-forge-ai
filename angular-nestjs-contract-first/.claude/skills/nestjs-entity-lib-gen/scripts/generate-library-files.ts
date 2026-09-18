@@ -117,6 +117,7 @@ function nestImportsFor(opts: {
   hasUpdate: boolean;
   hasRemove: boolean;
   customEndpoints: CustomEndpoint[];
+  paginationEnabled: boolean;
 }): string[] {
   const imports = new Set<string>(['Controller']);
   const methods = new Set<string>();
@@ -137,7 +138,7 @@ function nestImportsFor(opts: {
     (c) => (c.params ?? []).length > pathParamsOf(c.path).length
   );
   if (hasPathParam) imports.add('Param');
-  if (hasQueryParam) imports.add('Query');
+  if (hasQueryParam || opts.paginationEnabled) imports.add('Query');
 
   // Orden estable: Controller primero, luego verbos HTTP, luego el resto.
   const order = ['Controller', 'Get', 'Post', 'Patch', 'Delete', 'Param', 'Body', 'Query', 'HttpCode'];
@@ -148,6 +149,44 @@ function renderTemplate(name: string, context: unknown): string {
   const source = fs.readFileSync(path.join(TEMPLATES_DIR, name), 'utf-8');
   const template = Handlebars.compile(source, { noEscape: true });
   return template(context);
+}
+
+/**
+ * Traduce endpoints.pagination del spec a los valores concretos que
+ * necesitan los templates. Sin paginación (o sin GET_LIST) es el único
+ * caso "sin efecto": findAll sigue devolviendo un array plano, igual que
+ * antes de que existiera este campo.
+ */
+function paginationContextOf(spec: EntitySpec, hasFindAll: boolean) {
+  const pagination = spec.endpoints.pagination;
+  const paginationEnabled = hasFindAll && !!pagination?.enabled;
+  const style = pagination?.style ?? 'offset';
+  const isOffsetPagination = paginationEnabled && style === 'offset';
+  const isCursorPagination = paginationEnabled && style === 'cursor';
+  const defaultLimit = pagination?.defaultLimit ?? 20;
+  const maxLimit = pagination?.maxLimit ?? 100;
+
+  const primaryProperty = spec.properties.find((p) => p.isPrimary);
+  if (isCursorPagination && !primaryProperty) {
+    throw new Error('entity-spec.json inválido: paginación cursor requiere una property isPrimary');
+  }
+  const primaryName = primaryProperty?.name ?? '';
+  const cursorCastExpr = tsTypeOf(primaryProperty ?? ({} as PropertyConfig)) === 'number' ? 'Number(cursor)' : 'cursor';
+
+  const paginationDtoName = isCursorPagination
+    ? `CursorPaginated${spec.entityName}Dto`
+    : `Paginated${spec.entityName}Dto`;
+
+  return {
+    paginationEnabled,
+    isOffsetPagination,
+    isCursorPagination,
+    defaultLimit,
+    maxLimit,
+    primaryName,
+    cursorCastExpr,
+    paginationDtoName,
+  };
 }
 
 function buildContext(spec: EntitySpec) {
@@ -164,6 +203,8 @@ function buildContext(spec: EntitySpec) {
   const hasUpdate = standard.includes('PATCH');
   const hasRemove = standard.includes('DELETE');
   const needsFindOneMethod = exposeGetOne || hasUpdate || hasRemove;
+
+  const pagination = paginationContextOf(spec, hasFindAll);
 
   const customMethods = customMethodViewsOf(spec.endpoints.custom, entityName);
 
@@ -194,7 +235,14 @@ function buildContext(spec: EntitySpec) {
       typeormImports: typeormImportsFor(spec.properties),
       properties,
     },
-    dto: { entityName, createProperties, updateProperties, constructorParams },
+    dto: {
+      entityName,
+      entityFileBase,
+      createProperties,
+      updateProperties,
+      constructorParams,
+      ...pagination,
+    },
     service: {
       entityName,
       camelEntityName,
@@ -205,6 +253,7 @@ function buildContext(spec: EntitySpec) {
       hasUpdate,
       hasRemove,
       customMethods,
+      ...pagination,
     },
     controller: {
       entityName,
@@ -224,10 +273,19 @@ function buildContext(spec: EntitySpec) {
         hasUpdate,
         hasRemove,
         customEndpoints: spec.endpoints.custom,
+        paginationEnabled: pagination.paginationEnabled,
       }),
+      ...pagination,
     },
     module: { entityName, entityFileBase, moduleClassName },
-    index: { entityName, entityFileBase, moduleClassName, moduleFileBase },
+    index: {
+      entityName,
+      entityFileBase,
+      moduleClassName,
+      moduleFileBase,
+      paginationEnabled: pagination.paginationEnabled,
+      paginationDtoName: pagination.paginationDtoName,
+    },
     entityFileBase,
     moduleFileBase,
   };

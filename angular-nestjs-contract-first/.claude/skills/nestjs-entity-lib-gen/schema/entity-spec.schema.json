@@ -66,6 +66,20 @@
               }
             }
           }
+        },
+        "pagination": {
+          "type": "object",
+          "description": "Configuración de paginación para el endpoint GET_LIST, acordada explícitamente con el usuario en la fase 1. Solo tiene efecto si 'standard' incluye GET_LIST. Si se omite o enabled=false, GET_LIST devuelve un array plano (comportamiento sin paginar).",
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "style": {
+              "enum": ["offset", "cursor"],
+              "default": "offset",
+              "description": "'offset': query params page/limit, respuesta { data, total, page, limit, totalPages }. 'cursor': query params cursor/limit sobre la primary key (orden ascendente), respuesta { data, nextCursor, limit, hasMore }."
+            },
+            "defaultLimit": { "type": "integer", "minimum": 1, "default": 20 },
+            "maxLimit": { "type": "integer", "minimum": 1, "default": 100 }
+          }
         }
       }
     },

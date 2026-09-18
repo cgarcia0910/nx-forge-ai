@@ -53,6 +53,24 @@ Conversa con el usuario para acordar:
 - `endpoints.custom`: métodos más allá del CRUD (`name`, `method`,
   `path` con parámetros estilo `:param`, `description`, `params`,
   `returns`), solo si el usuario los pide explícitamente.
+- **Paginación de `GET_LIST`**: si `endpoints.standard` incluye
+  `GET_LIST`, pregunta explícitamente si ese listado debe estar
+  paginado. Nunca lo asumas ni lo actives por defecto. Si el usuario
+  quiere paginación, acuerda:
+  - `style`: `offset` (query params `page`/`limit`, respuesta
+    `{ data, total, page, limit, totalPages }` — recomendado por
+    defecto para listados con tabla/paginador) o `cursor` (query
+    params `cursor`/`limit` sobre la primary key en orden ascendente,
+    respuesta `{ data, nextCursor, limit, hasMore }` — para listas muy
+    grandes o infinite-scroll; ten en cuenta que si la primary key es
+    `uuid` el orden es lexicográfico, no cronológico).
+  - `defaultLimit` y `maxLimit` (por defecto 20 y 100 si el usuario no
+    da otros valores).
+  Escribe el resultado en `endpoints.pagination` (`{ enabled, style,
+  defaultLimit, maxLimit }`). Si el usuario no quiere paginación, omite
+  el campo o déjalo con `enabled: false` — el `GET_LIST` generado sigue
+  devolviendo un array plano, igual que antes de que existiera esta
+  opción.
 
 Escribe el resultado en un fichero de staging propio del skill, p. ej.
 `.claude/skills/nestjs-entity-lib-gen/.specs/<tabla-kebab>.json`, siguiendo
@@ -87,7 +105,12 @@ npx ts-node scripts/generate-openapi.ts --library-dir=<ruta a libs/backend/<tabl
 Escribe `<librería>/openapi/<entidad-kebab>.openapi.yaml` (OpenAPI 3.0.3)
 a partir de `entity-spec.json`, con `paths` para cada endpoint estándar
 expuesto y cada endpoint custom, y `components.schemas` para la entidad,
-`Create<Entidad>Dto` y `Update<Entidad>Dto`.
+`Create<Entidad>Dto` y `Update<Entidad>Dto`. Si `endpoints.pagination.enabled`
+es `true`, el `GET_LIST` añade los query params (`page`/`limit` para
+`style: offset`, `cursor`/`limit` para `style: cursor`) y su respuesta
+200 referencia
+`Paginated<Entidad>` o `CursorPaginated<Entidad>` en vez de un array
+plano.
 
 ### Paso 4 — Ficheros de código vía Handlebars (determinista)
 
@@ -100,7 +123,8 @@ Nx (recién creado, sin uso real todavía) por el patrón plano de
 `courses/src/user.*.ts`, renderizando las plantillas de `templates/*.hbs`:
 
 - `<entidad-kebab>.entity.ts`
-- `<entidad-kebab>.dto.ts`
+- `<entidad-kebab>.dto.ts` (incluye `Paginated<Entidad>Dto` o
+  `CursorPaginated<Entidad>Dto` si hay paginación acordada)
 - `<entidad-kebab>.service.ts`
 - `<entidad-kebab>.controller.ts`
 - `<tabla-kebab>.module.ts`
@@ -155,3 +179,13 @@ nestjs-entity-lib-gen/
   dos veces con el mismo `entity-spec.json` produce el mismo resultado
   (o, para los ficheros de negocio, un `*.generated.ts` para mergear a
   mano si ya existían).
+- Paginación (`endpoints.pagination`): no introduce dependencias nuevas
+  (sin `class-validator`/`class-transformer`) ni ficheros extra — se
+  resuelve enteramente dentro de `<entidad-kebab>.dto.ts` (clase de
+  respuesta), `.service.ts` (query a TypeORM) y `.controller.ts`
+  (`@Query()` sobre parámetros individuales, igual que los endpoints
+  custom). Sin `endpoints.pagination.enabled: true`, `GET_LIST` se
+  comporta exactamente igual que antes de que existiera este campo. En
+  `style: cursor`, el cursor es siempre la property `isPrimary`; si es
+  `uuid`, el orden es lexicográfico, no de inserción — adviértelo al
+  usuario en el paso 1 si le importa el orden cronológico.

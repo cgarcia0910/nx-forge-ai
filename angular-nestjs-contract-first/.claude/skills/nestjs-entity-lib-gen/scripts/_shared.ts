@@ -29,6 +29,13 @@ export interface CustomEndpoint {
   returns?: string;
 }
 
+export interface ListPagination {
+  enabled: boolean;
+  style?: 'offset' | 'cursor';
+  defaultLimit?: number;
+  maxLimit?: number;
+}
+
 export interface EntitySpec {
   entityName: string;
   tableName: string;
@@ -36,6 +43,7 @@ export interface EntitySpec {
   endpoints: {
     standard: StandardEndpoint[];
     custom: CustomEndpoint[];
+    pagination?: ListPagination;
   };
   meta?: { confirmedAt?: string; generatorVersion?: string };
 }

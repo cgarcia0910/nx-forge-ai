@@ -46,6 +46,33 @@ function entitySchema(spec: EntitySpec) {
   return { type: 'object', required, properties };
 }
 
+function paginatedSchema(entityName: string) {
+  return {
+    type: 'object',
+    required: ['data', 'total', 'page', 'limit', 'totalPages'],
+    properties: {
+      data: { type: 'array', items: { $ref: `#/components/schemas/${entityName}` } },
+      total: { type: 'integer' },
+      page: { type: 'integer' },
+      limit: { type: 'integer' },
+      totalPages: { type: 'integer' },
+    },
+  };
+}
+
+function cursorPaginatedSchema(entityName: string) {
+  return {
+    type: 'object',
+    required: ['data', 'limit', 'hasMore'],
+    properties: {
+      data: { type: 'array', items: { $ref: `#/components/schemas/${entityName}` } },
+      nextCursor: { type: 'string', nullable: true },
+      limit: { type: 'integer' },
+      hasMore: { type: 'boolean' },
+    },
+  };
+}
+
 function dtoSchema(spec: EntitySpec, mode: 'create' | 'update') {
   const writable = spec.properties.filter((p) => !p.isPrimary);
   const properties: Record<string, unknown> = {};
@@ -112,16 +139,51 @@ function buildDocument(spec: EntitySpec) {
   const ensurePath = (p: string) => (paths[p] ??= {});
 
   if (spec.endpoints.standard.includes('GET_LIST')) {
+    const pagination = spec.endpoints.pagination;
+    const paginationEnabled = !!pagination?.enabled;
+    const style = pagination?.style ?? 'offset';
+    const defaultLimit = pagination?.defaultLimit ?? 20;
+    const maxLimit = pagination?.maxLimit ?? 100;
+
+    const listSchema =
+      style === 'cursor'
+        ? { $ref: `#/components/schemas/CursorPaginated${entityName}` }
+        : { $ref: `#/components/schemas/Paginated${entityName}` };
+
+    const offsetParameters = [
+      { name: 'page', in: 'query', required: false, schema: { type: 'integer', minimum: 1, default: 1 } },
+      {
+        name: 'limit',
+        in: 'query',
+        required: false,
+        schema: { type: 'integer', minimum: 1, maximum: maxLimit, default: defaultLimit },
+      },
+    ];
+    const cursorParameters = [
+      { name: 'cursor', in: 'query', required: false, schema: { type: 'string' } },
+      {
+        name: 'limit',
+        in: 'query',
+        required: false,
+        schema: { type: 'integer', minimum: 1, maximum: maxLimit, default: defaultLimit },
+      },
+    ];
+
     ensurePath(basePath).get = {
       operationId: `findAll${entityName}`,
       tags: [entityName],
       summary: `Listar ${tableName}`,
+      ...(paginationEnabled
+        ? { parameters: style === 'cursor' ? cursorParameters : offsetParameters }
+        : {}),
       responses: {
         '200': {
           description: `Lista de ${tableName}`,
           content: {
             'application/json': {
-              schema: { type: 'array', items: { $ref: `#/components/schemas/${entityName}` } },
+              schema: paginationEnabled
+                ? listSchema
+                : { type: 'array', items: { $ref: `#/components/schemas/${entityName}` } },
             },
           },
         },
@@ -201,6 +263,16 @@ function buildDocument(spec: EntitySpec) {
     ensurePath(fullPath)[method] = customOperation(entityName, custom);
   }
 
+  const listPagination = spec.endpoints.pagination;
+  const paginationSchemas: Record<string, unknown> = {};
+  if (spec.endpoints.standard.includes('GET_LIST') && listPagination?.enabled) {
+    if ((listPagination.style ?? 'offset') === 'cursor') {
+      paginationSchemas[`CursorPaginated${entityName}`] = cursorPaginatedSchema(entityName);
+    } else {
+      paginationSchemas[`Paginated${entityName}`] = paginatedSchema(entityName);
+    }
+  }
+
   return {
     openapi: '3.0.3',
     info: { title: `${entityName} API`, version: '1.0.0' },
@@ -211,6 +283,7 @@ function buildDocument(spec: EntitySpec) {
         [entityName]: entitySchema(spec),
         [`Create${entityName}Dto`]: dtoSchema(spec, 'create'),
         [`Update${entityName}Dto`]: dtoSchema(spec, 'update'),
+        ...paginationSchemas,
       },
     },
   };

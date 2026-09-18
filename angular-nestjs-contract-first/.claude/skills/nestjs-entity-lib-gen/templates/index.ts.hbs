@@ -5,7 +5,7 @@ export { {{moduleClassName}} } from './{{moduleFileBase}}.module';
 export { {{entityName}} } from './{{entityFileBase}}.entity';
 
 // DTOs
-export { Create{{entityName}}Dto, Update{{entityName}}Dto } from './{{entityFileBase}}.dto';
+export { Create{{entityName}}Dto, Update{{entityName}}Dto{{#if paginationEnabled}}, {{paginationDtoName}}{{/if}} } from './{{entityFileBase}}.dto';
 
 // Servicio
 export { {{entityName}}Service } from './{{entityFileBase}}.service';

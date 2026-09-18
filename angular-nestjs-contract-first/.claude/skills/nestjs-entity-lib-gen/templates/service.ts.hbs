@@ -1,8 +1,8 @@
 import { Injectable{{#if hasFindOne}}, NotFoundException{{/if}} } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository{{#if isCursorPagination}}, MoreThan{{/if}} } from 'typeorm';
 import { {{entityName}} } from './{{entityFileBase}}.entity';
-import { Create{{entityName}}Dto, Update{{entityName}}Dto } from './{{entityFileBase}}.dto';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto{{#if paginationEnabled}}, {{paginationDtoName}}{{/if}} } from './{{entityFileBase}}.dto';
 
 @Injectable()
 export class {{entityName}}Service {
@@ -11,10 +11,49 @@ export class {{entityName}}Service {
     private {{camelEntityName}}Repository: Repository<{{entityName}}>,
   ) {}
 {{#if hasFindAll}}
+{{#if isOffsetPagination}}
+
+  async findAll(page?: string, limit?: string): Promise<{{paginationDtoName}}> {
+    const pageNumber = Math.max(1, parseInt(page ?? '', 10) || 1);
+    const limitNumber = Math.min({{maxLimit}}, Math.max(1, parseInt(limit ?? '', 10) || {{defaultLimit}}));
+    const [data, total] = await this.{{camelEntityName}}Repository.findAndCount({
+      skip: (pageNumber - 1) * limitNumber,
+      take: limitNumber,
+    });
+    return {
+      data,
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limitNumber),
+    };
+  }
+{{else}}
+{{#if isCursorPagination}}
+
+  async findAll(cursor?: string, limit?: string): Promise<{{paginationDtoName}}> {
+    const limitNumber = Math.min({{maxLimit}}, Math.max(1, parseInt(limit ?? '', 10) || {{defaultLimit}}));
+    const rows = await this.{{camelEntityName}}Repository.find({
+      where: cursor !== undefined ? { {{primaryName}}: MoreThan({{{cursorCastExpr}}}) } : {},
+      order: { {{primaryName}}: 'ASC' } as never,
+      take: limitNumber + 1,
+    });
+    const hasMore = rows.length > limitNumber;
+    const data = hasMore ? rows.slice(0, limitNumber) : rows;
+    return {
+      data,
+      nextCursor: hasMore ? String(data[data.length - 1].{{primaryName}}) : null,
+      limit: limitNumber,
+      hasMore,
+    };
+  }
+{{else}}
 
   async findAll(): Promise<{{entityName}}[]> {
     return this.{{camelEntityName}}Repository.find();
   }
+{{/if}}
+{{/if}}
 {{/if}}
 {{#if hasFindOne}}
 

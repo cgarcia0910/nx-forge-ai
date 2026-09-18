@@ -1,3 +1,7 @@
+{{#if paginationEnabled}}
+import { {{entityName}} } from './{{entityFileBase}}.entity';
+
+{{/if}}
 export class Create{{entityName}}Dto {
 {{#each createProperties}}
   {{name}}{{#if optional}}?{{/if}}: {{{tsType}}};
@@ -15,3 +19,22 @@ export class Update{{entityName}}Dto {
   {{name}}?: {{{tsType}}};
 {{/each}}
 }
+{{#if isOffsetPagination}}
+
+export class Paginated{{entityName}}Dto {
+  data!: {{entityName}}[];
+  total!: number;
+  page!: number;
+  limit!: number;
+  totalPages!: number;
+}
+{{/if}}
+{{#if isCursorPagination}}
+
+export class CursorPaginated{{entityName}}Dto {
+  data!: {{entityName}}[];
+  nextCursor!: string | null;
+  limit!: number;
+  hasMore!: boolean;
+}
+{{/if}}
