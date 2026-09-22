@@ -8,6 +8,9 @@
     },
     {
       "path": "./applications/backend/api"
+    },
+    {
+      "path": "./applications/frontend/front-e2e"
     }
   ],
   "compilerOptions": {}

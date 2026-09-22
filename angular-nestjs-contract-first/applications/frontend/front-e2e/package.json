@@ -1,0 +1,8 @@
+{
+  "name": "@org/front-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "name": "front-e2e"
+  }
+}
