@@ -1,0 +1,11 @@
+{
+  "$schema": "./.claude/skills/nestjs-entity-lib-gen/schema/generator-config.schema.json",
+  "librariesRoot": "libs/backend",
+  "npmScope": "@org",
+  "nxGenerator": "@nx/nest:library",
+  "nxGeneratorOptions": {
+    "buildable": true,
+    "unitTestRunner": "jest",
+    "linter": "eslint"
+  }
+}

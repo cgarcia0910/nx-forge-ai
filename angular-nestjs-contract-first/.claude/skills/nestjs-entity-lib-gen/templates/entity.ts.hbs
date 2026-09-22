@@ -1,0 +1,10 @@
+import { {{#each typeormImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from 'typeorm';
+
+@Entity('{{tableName}}')
+export class {{entityName}} {
+{{#each properties}}
+  {{{decorator}}}
+  {{name}}!: {{{tsType}}};
+
+{{/each}}
+}

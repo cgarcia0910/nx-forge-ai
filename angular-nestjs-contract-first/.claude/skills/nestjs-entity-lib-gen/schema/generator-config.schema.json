@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EntityGeneratorConfig",
+  "description": "Configuración determinista del workspace: dónde y cómo se crean las librerías de entidad. Vive en /entity-generator.config.json en la raíz del repo. Los scripts la leen; nunca la infieren ni la adivinan.",
+  "type": "object",
+  "required": ["librariesRoot", "npmScope", "nxGenerator"],
+  "properties": {
+    "librariesRoot": {
+      "type": "string",
+      "description": "Directorio base, relativo a la raíz del repo, donde se crean las librerías de entidad. Ej. 'libs/backend'."
+    },
+    "npmScope": {
+      "type": "string",
+      "description": "Prefijo de import path para las librerías generadas. Ej. '@org' produce '@org/<entidad-plural-kebab>'."
+    },
+    "nxGenerator": {
+      "type": "string",
+      "description": "Generador Nx a invocar para crear la librería. Ej. '@nx/nest:library'."
+    },
+    "nxGeneratorOptions": {
+      "type": "object",
+      "description": "Flags adicionales, ya validadas contra `nx g <nxGenerator> --help`, a pasar tal cual al generador.",
+      "additionalProperties": true
+    }
+  }
+}

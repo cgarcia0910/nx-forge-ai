@@ -1,0 +1,35 @@
+{
+  "entityName": "Order",
+  "tableName": "orders",
+  "fields": [
+    { "name": "id", "tsType": "uuid", "columnType": "uuid", "isPrimary": true },
+    { "name": "total", "tsType": "number", "columnType": "numeric", "isNullable": false },
+    { "name": "status", "tsType": "string", "columnType": "varchar", "isNullable": false, "default": "pending" },
+    { "name": "createdAt", "tsType": "Date", "columnType": "timestamp", "isNullable": false }
+  ],
+  "relationships": [
+    {
+      "targetEntity": "User",
+      "type": "ManyToOne",
+      "propertyName": "user",
+      "inverseSidePropertyName": "orders",
+      "joinColumn": "userId",
+      "cascade": [],
+      "eager": false,
+      "onDelete": "RESTRICT",
+      "confirmedBy": "user",
+      "sourceSignal": "fk-naming-convention"
+    }
+  ],
+  "endpoints": {
+    "expose": ["GET_LIST", "GET_ONE", "POST", "PATCH", "DELETE"],
+    "pagination": "offset",
+    "auth": { "required": true, "guard": "JwtAuthGuard" },
+    "basePath": "/v1/orders"
+  },
+  "customMethods": [],
+  "meta": {
+    "confirmedAt": "2026-09-16T10:00:00.000Z",
+    "generatorVersion": "1.0.0"
+  }
+}

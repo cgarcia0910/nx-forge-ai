@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EntitySpec",
+  "description": "Contrato único entre la fase 1 (conversación con el usuario) y las fases 2-4 (creación de librería, OpenAPI, ficheros de código). Todo lo que aparece aquí ya fue acordado con el usuario; los scripts de generate-*.ts no interpretan ni preguntan, solo traducen esto a código. v1: sin relaciones entre entidades.",
+  "type": "object",
+  "required": ["entityName", "tableName", "properties", "endpoints"],
+  "properties": {
+    "entityName": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "PascalCase singular, ej. 'Product'."
+    },
+    "tableName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "snake_case plural, ej. 'products'."
+    },
+    "properties": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "tsType", "columnType", "isPrimary", "isUnique", "isNullable"],
+        "properties": {
+          "name": { "type": "string", "description": "camelCase, ej. 'name'." },
+          "tsType": { "enum": ["string", "number", "boolean", "Date", "uuid"] },
+          "columnType": {
+            "type": "string",
+            "description": "Tipo de columna de Postgres, ej. 'varchar', 'timestamp', 'numeric', 'boolean'."
+          },
+          "isPrimary": { "type": "boolean", "default": false },
+          "isUnique": { "type": "boolean", "default": false },
+          "isNullable": { "type": "boolean", "default": false },
+          "default": { "description": "Valor por defecto de columna, opcional." }
+        }
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "required": ["standard", "custom"],
+      "properties": {
+        "standard": {
+          "type": "array",
+          "items": { "enum": ["GET_LIST", "GET_ONE", "POST", "PATCH", "DELETE"] },
+          "description": "Subconjunto del CRUD estándar a exponer."
+        },
+        "custom": {
+          "type": "array",
+          "description": "Métodos más allá del CRUD básico, acordados explícitamente con el usuario en la fase 1.",
+          "items": {
+            "type": "object",
+            "required": ["name", "method", "path", "description"],
+            "properties": {
+              "name": { "type": "string", "description": "Nombre del método en el service/controller, camelCase." },
+              "method": { "enum": ["GET", "POST", "PATCH", "DELETE"] },
+              "path": { "type": "string", "description": "Ej. '/by-status/:status'." },
+              "description": { "type": "string" },
+              "params": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Nombres de parámetros de ruta o query, ej. ['status']."
+              },
+              "returns": {
+                "type": "string",
+                "description": "Tipo TS devuelto, ej. 'Entity[]' o 'Entity'."
+              }
+            }
+          }
+        },
+        "pagination": {
+          "type": "object",
+          "description": "Configuración de paginación para el endpoint GET_LIST, acordada explícitamente con el usuario en la fase 1. Solo tiene efecto si 'standard' incluye GET_LIST. Si se omite o enabled=false, GET_LIST devuelve un array plano (comportamiento sin paginar).",
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "style": {
+              "enum": ["offset", "cursor"],
+              "default": "offset",
+              "description": "'offset': query params page/limit, respuesta { data, total, page, limit, totalPages }. 'cursor': query params cursor/limit sobre la primary key (orden ascendente), respuesta { data, nextCursor, limit, hasMore }."
+            },
+            "defaultLimit": { "type": "integer", "minimum": 1, "default": 20 },
+            "maxLimit": { "type": "integer", "minimum": 1, "default": 100 }
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "confirmedAt": { "type": "string", "format": "date-time" },
+        "generatorVersion": { "type": "string" }
+      }
+    }
+  }
+}

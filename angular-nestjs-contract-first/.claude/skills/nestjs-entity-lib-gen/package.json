@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-entity-lib-gen-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts deterministas de la skill nestjs-entity-lib-gen. No es un proyecto NestJS del usuario, solo las herramientas de generación de librerías Nx de entidad.",
+  "scripts": {
+    "create-library": "ts-node scripts/create-library.ts",
+    "gen:openapi": "ts-node scripts/generate-openapi.ts",
+    "gen:files": "ts-node scripts/generate-library-files.ts"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.9",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^20.14.0"
+  }
+}

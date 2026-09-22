@@ -1,0 +1,68 @@
+import { {{#each nestImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from '@nestjs/common';
+import { {{entityName}}Service } from './{{entityFileBase}}.service';
+import { Create{{entityName}}Dto, Update{{entityName}}Dto{{#if paginationEnabled}}, {{paginationDtoName}}{{/if}} } from './{{entityFileBase}}.dto';
+import { {{entityName}} } from './{{entityFileBase}}.entity';
+
+@Controller('{{tableName}}')
+export class {{entityName}}Controller {
+  constructor(private {{camelEntityName}}Service: {{entityName}}Service) {}
+{{#if hasFindAll}}
+{{#if isOffsetPagination}}
+
+  @Get()
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string): Promise<{{paginationDtoName}}> {
+    return this.{{camelEntityName}}Service.findAll(page, limit);
+  }
+{{else}}
+{{#if isCursorPagination}}
+
+  @Get()
+  findAll(@Query('cursor') cursor?: string, @Query('limit') limit?: string): Promise<{{paginationDtoName}}> {
+    return this.{{camelEntityName}}Service.findAll(cursor, limit);
+  }
+{{else}}
+
+  @Get()
+  findAll(): Promise<{{entityName}}[]> {
+    return this.{{camelEntityName}}Service.findAll();
+  }
+{{/if}}
+{{/if}}
+{{/if}}
+{{#if hasFindOne}}
+
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<{{entityName}}> {
+    return this.{{camelEntityName}}Service.findOne(id);
+  }
+{{/if}}
+{{#if hasCreate}}
+
+  @Post()
+  create(@Body() dto: Create{{entityName}}Dto): Promise<{{entityName}}> {
+    return this.{{camelEntityName}}Service.create(dto);
+  }
+{{/if}}
+{{#if hasUpdate}}
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: Update{{entityName}}Dto): Promise<{{entityName}}> {
+    return this.{{camelEntityName}}Service.update(id, dto);
+  }
+{{/if}}
+{{#if hasRemove}}
+
+  @Delete(':id')
+  @HttpCode(204)
+  remove(@Param('id') id: string): Promise<void> {
+    return this.{{camelEntityName}}Service.remove(id);
+  }
+{{/if}}
+{{#each customMethods}}
+
+  @{{httpDecorator}}('{{{routePath}}}')
+  {{name}}({{{controllerParamsSignature}}}): Promise<{{{returnType}}}> {
+    return this.{{../camelEntityName}}Service.{{name}}({{{callArgs}}});
+  }
+{{/each}}
+}

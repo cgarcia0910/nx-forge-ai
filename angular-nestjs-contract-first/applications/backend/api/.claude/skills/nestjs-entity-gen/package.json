@@ -1,0 +1,23 @@
+{
+  "name": "nestjs-entity-gen-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts deterministas de la skill nestjs-entity-gen. No es el proyecto NestJS del usuario, solo las herramientas de generación.",
+  "scripts": {
+    "scan": "ts-node scripts/scan-entities.ts",
+    "gen:entity": "ts-node scripts/generate-entity.ts",
+    "gen:openapi": "ts-node scripts/generate-openapi.ts",
+    "gen:controller": "ts-node scripts/generate-controller.ts",
+    "gen:service": "ts-node scripts/generate-service.ts"
+  },
+  "dependencies": {
+    "ts-morph": "^23.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^20.14.0",
+    "@types/js-yaml": "^4.0.9"
+  }
+}
