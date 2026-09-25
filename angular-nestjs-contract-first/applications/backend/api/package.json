@@ -4,6 +4,15 @@
   "private": true,
   "nx": {
     "targets": {
+      "build": {
+        "syncGenerators": []
+      },
+      "preview": {
+        "syncGenerators": []
+      },
+      "serve-static": {
+        "syncGenerators": []
+      },
       "prune-lockfile": {
         "dependsOn": [
           "build"
