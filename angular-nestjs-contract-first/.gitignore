@@ -53,3 +53,7 @@ Thumbs.db
 .nx/self-healing
 .nx/migrate-runs
 test-output
+
+.angular
+
+__screenshots__/
