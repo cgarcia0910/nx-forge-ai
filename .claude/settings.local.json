@@ -14,7 +14,9 @@
       "Bash(node -p \"require\\('./node_modules/typeorm/package.json'\\).version\")",
       "Bash(node -e \"const p=require\\('./node_modules/typeorm/package.json'\\); console.log\\(JSON.stringify\\({scripts:p.scripts, engines:p.engines}, null, 2\\)\\)\")",
       "Bash(npx ts-node *)",
-      "Bash(rm -rf libs/backend/categories .claude/skills/nestjs-entity-lib-gen/.specs/categories.json)"
+      "Bash(rm -rf libs/backend/categories .claude/skills/nestjs-entity-lib-gen/.specs/categories.json)",
+      "Bash(tail -80 /home/carlos/.npm/_logs/2026-09-26T10_25_42_176Z-debug-0.log)",
+      "Read(//home/carlos/.npm/_logs/**)"
     ],
     "additionalDirectories": [
       "/home/carlos/Documentos/angular-nest-contract-first/angular-nestjs-contract-first/.claude/skills/nestjs-entity-lib-gen",

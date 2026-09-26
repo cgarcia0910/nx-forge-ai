@@ -18,6 +18,9 @@
     "target": "es2022",
     "customConditions": ["@org/source"],
     "noUncheckedSideEffectImports": false,
-    "types": ["*"]
+    "types": ["*"],
+    "paths": {
+      "@org/authorization": ["./libs/frontend/authorization/src/index.ts"]
+    }
   }
 }

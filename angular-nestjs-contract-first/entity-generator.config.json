@@ -4,7 +4,6 @@
   "npmScope": "@org",
   "nxGenerator": "@nx/nest:library",
   "nxGeneratorOptions": {
-    "buildable": true,
     "unitTestRunner": "jest",
     "linter": "eslint"
   }
