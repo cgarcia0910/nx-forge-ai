@@ -48,14 +48,29 @@ function ensureWorkspacesGlob(repoRoot: string, librariesRoot: string) {
 /**
  * Todas las librerías generadas por este skill usan siempre TypeORM +
  * @nestjs/typeorm + decoradores de @nestjs/common (paso 4, plantillas
- * entity/service/module) — se declaran como dependencies del propio
- * package.json de la librería para que @nx/dependency-checks no falle,
- * tomando las versiones ya fijadas en el package.json raíz.
+ * entity/service/module). Cuando el generador crea un package.json propio
+ * para la librería (modo "buildable"/"publishable"), se declaran ahí como
+ * dependencies para que @nx/dependency-checks no falle, tomando las
+ * versiones ya fijadas en el package.json raíz.
+ *
+ * Con la config actual (sin "buildable") el generador NO crea package.json:
+ * la librería se resuelve vía tsconfig paths y comparte el mismo programa
+ * de compilación que la app consumidora, por lo que las dependencies del
+ * package.json raíz ya cubren la resolución en node_modules. No hay nada
+ * que declarar en ese caso.
  */
 function ensureLibraryDependencies(absoluteLibraryDir: string, repoRoot: string) {
+  const libPkgPath = path.join(absoluteLibraryDir, 'package.json');
+  if (!fs.existsSync(libPkgPath)) {
+    console.log(
+      `${libPkgPath} no existe (librería no buildable/publishable): las dependencies se resuelven ` +
+        `desde el package.json raíz, no hace falta declararlas por librería.`
+    );
+    return;
+  }
+
   const requiredDeps = ['@nestjs/common', '@nestjs/typeorm', 'typeorm'];
   const rootPkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf-8'));
-  const libPkgPath = path.join(absoluteLibraryDir, 'package.json');
   const libPkg = JSON.parse(fs.readFileSync(libPkgPath, 'utf-8'));
 
   libPkg.dependencies ??= {};
